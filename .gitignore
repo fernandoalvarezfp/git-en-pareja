@@ -1,0 +1,7 @@
+# Configuración personal del editor
+.vscode/
+.idea/
+
+# Archivos temporales
+*.swp
+*~
