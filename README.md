@@ -42,18 +42,55 @@ Recargad el navegador después de modificar archivos. Comprobar que Git ha integ
 
 # Preparación: un remoto, dos repositorios locales
 
+## 0.0. Configuración previa: proxy de red (opcional)
+
+Si la red de vuestro centro educativo requiere el uso de un servidor proxy para navegar o descargar paquetes, debéis configurarlo en el sistema para que `git`, `gh`, el navegador y `apt` tengan salida a Internet.
+
+En vuestra MV Debian, podéis declarar las variables de entorno globales editando el archivo `/etc/environment` como administrador:
+
+```bash
+sudo nano /etc/environment
+```
+
+Añadid las siguientes líneas al final del archivo (sustituyendo la dirección si el docente indica otra):
+
+```ini
+http_proxy="http://192.168.0.11:3128"
+https_proxy="http://192.168.0.11:3128"
+HTTP_PROXY="http://192.168.0.11:3128"
+HTTPS_PROXY="http://192.168.0.11:3128"
+no_proxy="localhost,127.0.0.1"
+NO_PROXY="localhost,127.0.0.1"
+```
+
+Guardad los cambios (`Ctrl + O`, `Enter` y `Ctrl + X`) y aplicadlos a vuestra sesión de terminal actual:
+
+```bash
+source /etc/environment
+export http_proxy https_proxy HTTP_PROXY HTTPS_PROXY no_proxy NO_PROXY
+```
+
+> **Consejo para APT:** En sistemas Debian, `sudo` puede limpiar las variables de entorno por defecto. Si `sudo apt update` da errores de conexión o tiempo de espera, configurad el proxy para APT directamente:
+> ```bash
+> echo 'Acquire::http::Proxy "http://192.168.0.11:3128/";' | sudo tee /etc/apt/apt.conf.d/99proxy
+> echo 'Acquire::https::Proxy "http://192.168.0.11:3128/";' | sudo tee -a /etc/apt/apt.conf.d/99proxy
+> ```
+
 ## 0.1. Revisar las herramientas — ambos
 
 ```bash
 git --version
+gh --version
 ```
 
-Si no está instalado, en vuestra MV Debian y con autorización para administrar el sistema:
+Si Git no está instalado, en vuestra MV Debian y con autorización para administrar el sistema:
 
 ```bash
 sudo apt update
 sudo apt install git
 ```
+
+Si `gh` no está instalado en el sistema, lo instalaréis en el apartado 0.3.
 
 Comprobad también que podéis iniciar sesión en GitHub desde el navegador.
 
@@ -76,12 +113,56 @@ Comprobad también que podéis iniciar sesión en GitHub desde el navegador.
 
 Los comandos de esta práctica usan HTTPS. GitHub **no acepta la contraseña de la cuenta** como contraseña para hacer operaciones Git por HTTPS.
 
-- Si vuestra MV ya dispone de un gestor de credenciales o un inicio de sesión mediante navegador, seguid ese procedimiento.
-- Si Git solicita usuario y contraseña en terminal, usad vuestro usuario y, como contraseña, un **personal access token**, no la contraseña de GitHub. El token se gestiona en **Settings → Developer settings → Personal access tokens**.
-- Si usáis un token de permisos detallados (*fine-grained*), debe permitir el acceso al repositorio y escritura en **Contents**. Su disponibilidad para repositorios ajenos depende de la propiedad del repositorio; B debe verificar que su método permite escribir como colaborador. Un token clásico con alcance `repo` es una alternativa cuando las normas del centro lo permitan, aunque concede acceso más amplio.
-- También podéis usar SSH si ya lo tenéis configurado: sustituid la URL HTTPS por la URL SSH que ofrece GitHub.
+La forma oficial y más cómoda de autenticarse en terminal es mediante **GitHub CLI (`gh`)**, que además configura Git automáticamente para recordar vuestra sesión sin pedir usuario ni contraseña en cada operación.
 
-No compartáis tokens, no los escribáis en comandos o URLs y no los guardéis en archivos del proyecto. No configuréis almacenamiento de credenciales en texto plano. Si se filtra uno, revocadlo inmediatamente.
+### 1. Instalar GitHub CLI (`gh`)
+
+Comprobad si ya lo tenéis instalado:
+
+```bash
+gh --version
+```
+
+Si no está instalado, en vuestra MV Debian añadid el repositorio oficial e instaladlo:
+
+```bash
+sudo mkdir -p -m 755 /etc/apt/keyrings \
+&& out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+&& cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+&& sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+```
+
+### 2. Iniciar sesión y vincular Git
+
+Iniciad sesión ejecutando:
+
+```bash
+gh auth login
+```
+
+Responded a las preguntas interactivas con estas opciones:
+
+1. **What account do you want to log into?** → Seleccionad `GitHub.com`.
+2. **What is your preferred protocol for Git operations on this host?** → Seleccionad `HTTPS`.
+3. **Authenticate Git with your GitHub credentials?** → Elegid `Yes` *(fundamental: esto configura el asistente de credenciales de Git para que clone, push y pull no vuelvan a pedir contraseña)*.
+4. **How would you like to authenticate GitHub CLI?** → Elegid `Login with a web browser`.
+
+El terminal mostrará un código de 8 caracteres (tipo `XXXX-XXXX`). Pulsad `Enter` para abrir el navegador (o abrid `https://github.com/login/device` si el navegador no se abre solo) e introducid ese código para autorizar el equipo.
+
+### 3. Comprobar la conexión
+
+Confirmad que la sesión está activa y asociada a vuestro usuario:
+
+```bash
+gh auth status
+```
+
+Debe mostrar vuestro nombre de usuario y que las operaciones Git están configuradas por HTTPS.
+
+> **Alternativa SSH:** Si ya disponíais de SSH previamente configurado y vinculado a vuestra cuenta de GitHub, podéis usarlo sustituyendo la URL HTTPS por la URL SSH que ofrece GitHub. Para la práctica, la vía con `gh` por HTTPS es la opción recomendada.
 
 ## 0.4. Crear el primer historial — solo A
 

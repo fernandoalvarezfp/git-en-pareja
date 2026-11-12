@@ -45,7 +45,7 @@ Si el material se publica en GitHub, indicad que descarguen el ZIP: en esta prá
 
 ### Requisitos a comprobar
 
-- Dos MV Debian por pareja, con terminal, editor, navegador, Git y conectividad a GitHub.
+- Dos MV Debian por pareja, con terminal, editor, navegador, Git y conectividad a GitHub (incluyendo configuración de proxy en `/etc/environment` si la red del centro lo requiere).
 - Una cuenta de GitHub por persona y un método de autenticación Git funcional.
 - Posibilidad de crear un repositorio y añadir a la otra persona como colaboradora con escritura.
 - Convenciones del centro para visibilidad, correos de autoría, cuentas y tratamiento de capturas.
@@ -61,9 +61,9 @@ La práctica no exige checks automáticos ni desplegar la web. Una marca verde d
 
 Anticipad la diferencia entre la identidad del commit y las credenciales. Los correos `noreply` permiten evitar exponer correos personales.
 
-Para HTTPS, las contraseñas de cuenta no sirven. Si hay un mecanismo institucional de credenciales, priorizadlo. Los tokens *fine-grained* tienen restricciones de propiedad y acceso que pueden complicar el caso de B como colaborador de un repositorio propiedad de A; no asumáis que seleccionar permisos de contenido basta. SSH previamente configurado o un token clásico autorizado por el centro son alternativas.
+Para HTTPS, las contraseñas de cuenta no sirven. En la práctica se utiliza **GitHub CLI (`gh auth login`)**, que resuelve la autenticación mediante el flujo web de dispositivo y configura automáticamente el gestor de credenciales de Git (`gh auth setup-git`). Esto evita los errores habituales al gestionar tokens manualmente (especialmente las restricciones de tokens *fine-grained* al colaborar en repositorios ajenos).
 
-No pidáis al alumnado que os enseñe tokens ni que los comparta con la pareja. No uséis tokens dentro de la URL ni `credential.helper store`. Si falla la autenticación, separad esa incidencia del contenido de Git: no se resuelve rehaciendo el historial.
+Si el centro dispone de un mecanismo institucional de credenciales o el alumnado ya tiene SSH configurado, pueden usarlo como alternativa. No pidáis al alumnado que comparta credenciales con la pareja ni configuréis `credential.helper store` en texto plano. Si falla la autenticación, separad esa incidencia del contenido de Git: no se resuelve rehaciendo el historial.
 
 ## 3. Mapa de hitos y resultados esperados
 
@@ -196,7 +196,8 @@ Antes de recomendar nada, pedid el comando exacto, el mensaje completo, `git sta
 
 | Síntoma | Causa probable | Intervención |
 | --- | --- | --- |
-| `Permission denied`, 403 o autenticación fallida | Credenciales, invitación pendiente, permisos del token o URL de otro repositorio | Verificar cuenta, URL y acceso; no tocar los commits |
+| `Permission denied`, 403 o autenticación fallida | Sesión de `gh` no iniciada, falta configurar helper de Git, invitación pendiente o URL ajena | Comprobar con `gh auth status`, relanzar `gh auth login`, verificar invitación y URL; no tocar los commits |
+| Timeout o error de conexión con GitHub o `apt` | Proxy no configurado o variables de entorno no cargadas | Configurar `/etc/environment` (`192.168.0.11:3128`), exportar variables y revisar `/etc/apt/apt.conf.d/99proxy` |
 | El remoto ya contiene un commit inicial ajeno | Se marcó crear README/licencia en GitHub | Antes de empezar, usar un remoto realmente vacío. Si ya hay trabajo, revisarlo con el docente; no sugerir `--allow-unrelated-histories` a ciegas |
 | A no consigue provocar el primer rechazo | B aún no publicó, A ya incorporó el commit de B o el push apunta a otro remoto o rama | Comprobar la publicación de B, el historial, el remoto y la rama de destino; si hace falta, crear una nueva ronda equivalente con cambios independientes. No haber confirmado el cambio local no impide por sí solo que el push sea rechazado |
 | No aparece el conflicto de color | Una persona partió del nuevo color de la otra o editó otra línea | Sincronizar, escoger una nueva base y repetir ambos con valores distintos desde esa base, confirmando antes de publicar |
@@ -220,7 +221,7 @@ No es necesario reconstruir toda la práctica ni borrar commits. Identificad qu�
 
 ### Archivos y datos sensibles
 
-Si una captura muestra un token real, revocadlo antes de cualquier otra cosa. Borrar el archivo en un commit posterior no lo elimina del historial. Revisad el incidente con el docente y aplicad el procedimiento del centro para retirar el secreto del historial cuando corresponda.
+Si una captura muestra credenciales o información sensible, cerrad la sesión o revocad el acceso antes de cualquier otra cosa. Borrar el archivo en un commit posterior no lo elimina del historial. Revisad el incidente con el docente y aplicad el procedimiento del centro para retirar el secreto del historial cuando corresponda.
 
 ## 7. Evaluación propuesta
 

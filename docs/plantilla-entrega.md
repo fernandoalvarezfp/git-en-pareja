@@ -121,7 +121,7 @@ Un error o dificultad real, cómo lo investigué y qué haría para colaborar me
 ## Comprobación de la pareja
 
 - [ ] Hemos comprobado que todos los enlaces y las imágenes funcionan en GitHub.
-- [ ] No hay tokens, contraseñas ni datos personales innecesarios en las capturas.
+- [ ] No hay credenciales, contraseñas ni datos personales innecesarios en las capturas.
 - [ ] Se ven aportaciones y revisión de ambas personas.
 - [ ] B ha resuelto el conflicto de color y A el del saludo; la pareja ha revisado el resultado.
 - [ ] La PR del reto final está integrada y contiene descripción, prueba y revisión concreta.
